@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Công cụ Nhị phân Toàn diện</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Fira+Code:wght@400;600&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+      }
+
+      .bit-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        perspective: 1000px;
+      }
+
+      .bit-card:hover {
+        transform: translateY(-3px);
+      }
+
+      .active-glow {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+      }
+      .active-glow-green {
+        box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+      }
+      .active-glow-purple {
+        box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
+      }
+      .active-glow-orange {
+        box-shadow: 0 0 15px rgba(249, 115, 22, 0.5);
+      }
+
+      .nav-link {
+        transition: all 0.2s;
+      }
+      .nav-link.active {
+        background-color: #2563eb;
+        color: white;
+      }
+
+      .hidden {
+        display: none;
+      }
+      .mono {
+        font-family: "Fira Code", monospace;
+      }
+
+      .step-row {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        line-height: 1.6;
+      }
+
+      .step-bit {
+        width: 1.5rem;
+        text-align: center;
+        display: inline-block;
+      }
+
+      @media (min-width: 768px) {
+        .step-bit {
+          width: 2.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="pb-12">
+    <!-- Menu Điều hướng -->
+    <nav class="bg-white shadow-md sticky top-0 z-50 mb-8">
+      <div class="max-w-6xl mx-auto px-4 overflow-x-auto">
+        <div
+          class="flex justify-between items-center h-16 min-w-max md:min-w-full gap-4"
+        >
+          <div class="flex items-center gap-2">
+            <div
+              class="bg-blue-600 text-white p-2 rounded-lg font-bold text-sm text-center"
+            >
+              BIN
+            </div>
+            <span
+              class="font-bold text-gray-800 hidden lg:block uppercase tracking-wider text-sm"
+              >Binary Lab</span
+            >
+          </div>
+          <div class="flex gap-1">
+            <button
+              onclick="switchPage('converter')"
+              id="btn-converter"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100 active"
+            >
+              Mô phỏng
+            </button>
+            <button
+              onclick="switchPage('addition')"
+              id="btn-addition"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Cộng
+            </button>
+            <button
+              onclick="switchPage('multiplication')"
+              id="btn-multiplication"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Nhân
+            </button>
+            <button
+              onclick="switchPage('bitwise')"
+              id="btn-bitwise"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Bitwise
+            </button>
+            <button
+              onclick="switchPage('shifts')"
+              id="btn-shifts"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Dịch bit
+            </button>
+            <button
+              onclick="switchPage('dec2bin')"
+              id="btn-dec2bin"
+              class="nav-link px-3 py-2 rounded-full text-xs font-semibold text-gray-600 hover:bg-gray-100"
+            >
+              Dec ➔ Bin
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4">
+      <!-- TRANG 1: MÔ PHỎNG -->
+      <section id="page-converter" class="page-content">
+        <header class="text-center mb-10">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Mô phỏng Số Nhị Phân
+          </h1>
+          <div
+            class="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl shadow-lg inline-flex"
+          >
+            <label class="font-semibold text-gray-700">Bits:</label>
+            <input
+              type="number"
+              id="bitInput"
+              value="8"
+              min="1"
+              max="16"
+              class="w-16 px-2 py-1 border-2 border-blue-100 rounded-lg outline-none"
+            />
+            <button
+              onclick="initConverter()"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-lg transition-colors"
+            >
+              Tạo
+            </button>
+          </div>
+        </header>
+        <div
+          id="binaryContainer"
+          class="flex flex-wrap justify-center gap-3 mb-12"
+        ></div>
+        <div
+          class="bg-white rounded-3xl shadow-xl p-8 max-w-2xl mx-auto text-center border-t-8 border-blue-600"
+        >
+          <h2
+            class="text-gray-500 uppercase text-xs font-bold tracking-widest mb-2 text-center"
+          >
+            Hệ thập phân
+          </h2>
+          <div
+            id="decimalResult"
+            class="text-6xl font-black text-blue-600 mb-4 text-center"
+          >
+            0
+          </div>
+          <div
+            id="calculationPath"
+            class="text-gray-400 font-mono text-xs break-words px-4 text-center"
+          ></div>
+        </div>
+      </section>
+
+      <!-- TRANG 2: PHÉP CỘNG -->
+      <section id="page-addition" class="page-content hidden">
+        <header class="text-center mb-6">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Minh họa Phép cộng
+          </h1>
+        </header>
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-green-500"
+            >
+              <div class="flex items-center gap-4 mb-4">
+                <span class="font-bold text-green-700">Số hạng A:</span>
+                <input
+                  type="number"
+                  id="addBitsA"
+                  value="8"
+                  min="1"
+                  max="12"
+                  class="w-14 p-1 border rounded text-sm"
+                />
+                <button
+                  onclick="initAddition()"
+                  class="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold"
+                >
+                  Tạo lại
+                </button>
+              </div>
+              <div
+                id="addContainerA"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-emerald-500"
+            >
+              <div class="flex items-center gap-4 mb-4">
+                <span class="font-bold text-emerald-700">Số hạng B:</span>
+                <input
+                  type="number"
+                  id="addBitsB"
+                  value="8"
+                  min="1"
+                  max="12"
+                  class="w-14 p-1 border rounded text-sm"
+                />
+                <button
+                  onclick="initAddition()"
+                  class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold"
+                >
+                  Tạo lại
+                </button>
+              </div>
+              <div
+                id="addContainerB"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+          </div>
+          <div
+            class="bg-slate-900 rounded-3xl shadow-2xl p-6 md:p-10 text-white overflow-x-auto"
+          >
+            <div
+              id="additionSteps"
+              class="mono text-xl md:text-3xl flex flex-col items-end max-w-max mx-auto pb-4"
+            ></div>
+            <div
+              id="additionSummary"
+              class="mt-8 text-center text-slate-400 border-t border-slate-800 pt-6 text-center"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANG 3: PHÉP NHÂN -->
+      <section id="page-multiplication" class="page-content hidden">
+        <header class="text-center mb-6">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Minh họa Phép nhân
+          </h1>
+        </header>
+        <div class="space-y-8">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-purple-500"
+            >
+              <div class="flex items-center gap-4 mb-4">
+                <span class="font-bold text-purple-700">Thừa số A:</span>
+                <input
+                  type="number"
+                  id="mulBitsA"
+                  value="4"
+                  min="1"
+                  max="8"
+                  class="w-14 p-1 border rounded text-sm"
+                />
+                <button
+                  onclick="initMultiplication()"
+                  class="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-bold"
+                >
+                  Cập nhật
+                </button>
+              </div>
+              <div
+                id="mulContainerA"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+            <div
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-pink-500"
+            >
+              <div class="flex items-center gap-4 mb-4">
+                <span class="font-bold text-pink-700">Thừa số B:</span>
+                <input
+                  type="number"
+                  id="mulBitsB"
+                  value="4"
+                  min="1"
+                  max="8"
+                  class="w-14 p-1 border rounded text-sm"
+                />
+                <button
+                  onclick="initMultiplication()"
+                  class="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-bold"
+                >
+                  Cập nhật
+                </button>
+              </div>
+              <div
+                id="mulContainerB"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+          </div>
+          <div
+            class="bg-slate-900 rounded-3xl shadow-2xl p-6 md:p-10 text-white overflow-x-auto"
+          >
+            <h3
+              class="text-slate-400 uppercase text-xs font-bold tracking-widest mb-6 text-center"
+            >
+              Sơ đồ Nhân dọc Nhị phân
+            </h3>
+            <div
+              id="multiplicationSteps"
+              class="mono text-xl md:text-3xl flex flex-col items-end max-w-max mx-auto pb-4"
+            ></div>
+            <div
+              id="multiplicationSummary"
+              class="mt-8 text-center text-slate-400 border-t border-slate-800 pt-6 text-center"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANG 4: BITWISE LOGIC -->
+      <section id="page-bitwise" class="page-content hidden">
+        <header class="text-center mb-6">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Phép toán Logic
+          </h1>
+          <div
+            class="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl shadow-lg inline-flex"
+          >
+            <label class="font-semibold text-gray-700">Bits:</label>
+            <input
+              type="number"
+              id="bitwiseBits"
+              value="8"
+              min="1"
+              max="16"
+              class="w-16 px-2 py-1 border-2 border-blue-100 rounded-lg outline-none"
+            />
+            <button
+              onclick="initBitwise()"
+              class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-4 rounded-lg transition-colors"
+            >
+              Cập nhật
+            </button>
+          </div>
+        </header>
+        <div class="space-y-6">
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md flex flex-wrap justify-center gap-4"
+          >
+            <button
+              onclick="setBitwiseOp('AND')"
+              id="btn-op-AND"
+              class="op-btn px-6 py-2 rounded-xl font-bold bg-blue-600 text-white"
+            >
+              AND (&)
+            </button>
+            <button
+              onclick="setBitwiseOp('OR')"
+              id="btn-op-OR"
+              class="op-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600"
+            >
+              OR (|)
+            </button>
+            <button
+              onclick="setBitwiseOp('XOR')"
+              id="btn-op-XOR"
+              class="op-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600"
+            >
+              XOR (^)
+            </button>
+            <button
+              onclick="setBitwiseOp('NOT')"
+              id="btn-op-NOT"
+              class="op-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600"
+            >
+              NOT (~)
+            </button>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-blue-500"
+            >
+              <span
+                class="font-bold text-blue-700 block mb-4 uppercase text-xs tracking-wider"
+                >Input A:</span
+              >
+              <div
+                id="bitContainerA"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+            <div
+              id="bitwiseInputB"
+              class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-indigo-500"
+            >
+              <span
+                class="font-bold text-indigo-700 block mb-4 uppercase text-xs tracking-wider"
+                >Input B:</span
+              >
+              <div
+                id="bitContainerB"
+                class="flex flex-wrap justify-start gap-2"
+              ></div>
+            </div>
+          </div>
+          <div
+            class="bg-slate-900 rounded-3xl shadow-2xl p-8 text-white overflow-x-auto text-center"
+          >
+            <div
+              id="bitwiseVisualization"
+              class="mono text-2xl md:text-4xl flex flex-col items-end max-w-max mx-auto space-y-4"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANG 5: DỊCH BIT -->
+      <section id="page-shifts" class="page-content hidden">
+        <header class="text-center mb-6">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Phép dịch Bit (Shifts)
+          </h1>
+          <div
+            class="flex items-center justify-center gap-4 bg-white p-4 rounded-2xl shadow-lg inline-flex"
+          >
+            <label class="font-semibold text-gray-700">Bits:</label>
+            <input
+              type="number"
+              id="shiftBitsInput"
+              value="8"
+              min="1"
+              max="16"
+              class="w-16 px-2 py-1 border-2 border-orange-100 rounded-lg outline-none"
+            />
+            <button
+              onclick="initShifts()"
+              class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-1.5 px-4 rounded-lg transition-colors"
+            >
+              Cập nhật
+            </button>
+          </div>
+        </header>
+        <div class="space-y-6">
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md flex flex-col gap-6 items-center"
+          >
+            <div class="flex flex-wrap justify-center gap-2">
+              <button
+                onclick="setShiftDir('left')"
+                id="btn-shift-left"
+                class="shift-dir-btn px-6 py-2 rounded-xl font-bold bg-orange-600 text-white"
+              >
+                Dịch trái (<<)
+              </button>
+              <button
+                onclick="setShiftDir('right')"
+                id="btn-shift-right"
+                class="shift-dir-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600"
+              >
+                Dịch phải (>>)
+              </button>
+            </div>
+
+            <div
+              class="flex items-center gap-4 bg-gray-50 px-6 py-3 rounded-2xl w-full max-w-md"
+            >
+              <span class="font-bold text-gray-700 whitespace-nowrap text-sm"
+                >Số vị trí:</span
+              >
+              <input
+                type="range"
+                id="shiftAmount"
+                min="0"
+                max="8"
+                value="1"
+                oninput="updateShiftAmount(this.value)"
+                class="flex-grow h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-600"
+              />
+              <span
+                id="shiftAmountVal"
+                class="font-mono font-bold text-orange-600 text-xl w-8 text-center"
+                >1</span
+              >
+            </div>
+          </div>
+
+          <div
+            class="bg-white p-6 rounded-3xl shadow-md border-l-8 border-orange-500"
+          >
+            <span
+              class="font-bold text-orange-700 block mb-4 uppercase text-xs tracking-wider"
+              >Dãy bit gốc:</span
+            >
+            <div
+              id="shiftBitContainer"
+              class="flex flex-wrap justify-start gap-2"
+            ></div>
+          </div>
+
+          <div
+            class="bg-slate-900 rounded-3xl shadow-2xl p-6 md:p-10 text-white overflow-x-auto text-center"
+          >
+            <div
+              id="shiftVisualization"
+              class="mono text-2xl md:text-4xl flex flex-col items-center gap-8 min-w-max"
+            ></div>
+            <div
+              id="shiftSummary"
+              class="mt-8 text-center text-slate-400 border-t border-slate-800 pt-6 text-sm text-center"
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANG 6: THẬP PHÂN SANG NHỊ PHÂN -->
+      <section id="page-dec2bin" class="page-content hidden">
+        <header class="text-center mb-6">
+          <h1
+            class="text-3xl md:text-4xl font-bold text-gray-800 mb-4 text-center"
+          >
+            Chuyển Thập phân ➔ Nhị phân
+          </h1>
+          <p class="text-gray-600 text-center">
+            Chia liên tiếp cho 2 và lấy số dư từ dưới lên
+          </p>
+        </header>
+
+        <div class="max-w-2xl mx-auto space-y-6">
+          <div
+            class="bg-white p-8 rounded-3xl shadow-lg flex flex-col items-center gap-4"
+          >
+            <label
+              class="font-bold text-gray-700 uppercase tracking-widest text-xs"
+              >Nhập số thập phân:</label
+            >
+            <div class="flex gap-2 w-full">
+              <input
+                type="number"
+                id="decInput"
+                value="25"
+                min="0"
+                max="9999"
+                class="flex-grow text-3xl font-bold text-center border-b-4 border-blue-100 focus:border-blue-500 outline-none p-2"
+              />
+              <button
+                onclick="calculateDecToBin()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 rounded-xl shadow-lg transition-all"
+              >
+                CHUYỂN
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="conversionStepsArea"
+            class="bg-slate-900 rounded-3xl shadow-2xl p-6 md:p-10 text-white hidden"
+          >
+            <h3
+              class="text-slate-400 uppercase text-xs font-bold tracking-widest mb-8 text-center"
+            >
+              Các bước thực hiện
+            </h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full mono text-lg md:text-2xl border-collapse">
+                <thead>
+                  <tr
+                    class="text-slate-500 text-xs uppercase border-b border-slate-800"
+                  >
+                    <th class="py-2 text-left">Phép tính</th>
+                    <th class="py-2 text-center">Thương</th>
+                    <th class="py-2 text-right">Số dư</th>
+                  </tr>
+                </thead>
+                <tbody id="dec2binStepsBody">
+                  <!-- JS renders rows here -->
+                </tbody>
+              </table>
+            </div>
+
+            <div
+              class="mt-10 pt-8 border-t border-slate-800 flex flex-col items-center gap-4"
+            >
+              <div class="text-slate-500 text-xs uppercase tracking-widest">
+                Kết quả nhị phân (Đọc ngược từ dưới lên)
+              </div>
+              <div
+                id="dec2binFinalResult"
+                class="text-4xl md:text-6xl font-black text-blue-400 tracking-widest"
+              ></div>
+              <div class="text-slate-400 text-sm italic mt-2">
+                Đọc các số dư: <span id="dec2binRemainderList"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      // --- NAVIGATION ---
+      function switchPage(pageId) {
+        document
+          .querySelectorAll(".page-content")
+          .forEach((p) => p.classList.add("hidden"));
+        document.getElementById("page-" + pageId).classList.remove("hidden");
+        document
+          .querySelectorAll(".nav-link")
+          .forEach((btn) => btn.classList.remove("active"));
+        document.getElementById("btn-" + pageId).classList.add("active");
+
+        if (pageId === "converter") initConverter();
+        if (pageId === "addition") initAddition();
+        if (pageId === "multiplication") initMultiplication();
+        if (pageId === "bitwise") initBitwise();
+        if (pageId === "shifts") initShifts();
+        if (pageId === "dec2bin") calculateDecToBin();
+      }
+
+      function renderBitSet(
+        containerId,
+        states,
+        colorClass,
+        glowClass,
+        onChange
+      ) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        for (let i = states.length - 1; i >= 0; i--) {
+          const val = states[i];
+          const col = document.createElement("div");
+          col.className = "flex flex-col items-center gap-1 w-10 md:w-12";
+          const card = document.createElement("div");
+          card.onclick = () => {
+            states[i] = states[i] ? 0 : 1;
+            onChange();
+          };
+          card.className = `bit-card w-full aspect-[3/4] rounded-lg cursor-pointer flex items-center justify-center text-lg md:text-xl font-bold border-2 ${
+            val
+              ? `${colorClass} text-white ${glowClass}`
+              : "bg-white border-gray-100 text-gray-200"
+          }`;
+          card.innerText = val;
+          const label = document.createElement("div");
+          label.className = "text-[9px] text-gray-400 font-bold";
+          label.innerHTML = `2<sup>${i}</sup>`;
+          col.appendChild(card);
+          col.appendChild(label);
+          container.appendChild(col);
+        }
+      }
+
+      // --- MÔ PHỎNG ---
+      let converterStates = [];
+      function initConverter() {
+        const input = document.getElementById("bitInput");
+        let count = Math.min(Math.max(parseInt(input.value) || 8, 1), 16);
+        input.value = count;
+        converterStates = new Array(count).fill(0);
+        renderConverter();
+      }
+      function renderConverter() {
+        const container = document.getElementById("binaryContainer");
+        container.innerHTML = "";
+        let total = 0,
+          path = [];
+        for (let i = converterStates.length - 1; i >= 0; i--) {
+          const val = converterStates[i];
+          const dec = Math.pow(2, i);
+          if (val) {
+            total += dec;
+            path.push(dec);
+          }
+          const col = document.createElement("div");
+          col.className = "flex flex-col items-center gap-2 w-14 md:w-16";
+          const card = document.createElement("div");
+          card.onclick = () => {
+            converterStates[i] = converterStates[i] ? 0 : 1;
+            renderConverter();
+          };
+          card.className = `bit-card w-full aspect-[3/4] rounded-xl cursor-pointer flex items-center justify-center text-2xl md:text-3xl font-bold border-4 ${
+            val
+              ? "bg-blue-600 border-blue-400 text-white active-glow"
+              : "bg-white border-gray-100 text-gray-300"
+          }`;
+          card.innerText = val;
+          const label = document.createElement("div");
+          label.className = "text-center text-[10px]";
+          label.innerHTML = `<p class="font-bold">2<sup>${i}</sup></p><p class="text-gray-400">${dec}</p>`;
+          col.appendChild(card);
+          col.appendChild(label);
+          container.appendChild(col);
+        }
+        document.getElementById("decimalResult").innerText = total;
+        document.getElementById("calculationPath").innerText = path.length
+          ? path.sort((a, b) => b - a).join(" + ") + " = " + total
+          : "0";
+      }
+
+      // --- CỘNG ---
+      let addStatesA = [],
+        addStatesB = [];
+      function initAddition() {
+        addStatesA = new Array(
+          parseInt(document.getElementById("addBitsA").value) || 8
+        ).fill(0);
+        addStatesB = new Array(
+          parseInt(document.getElementById("addBitsB").value) || 8
+        ).fill(0);
+        renderAdditionUI();
+      }
+      function renderAdditionUI() {
+        renderBitSet(
+          "addContainerA",
+          addStatesA,
+          "bg-green-600 border-green-400",
+          "active-glow-green",
+          renderAdditionUI
+        );
+        renderBitSet(
+          "addContainerB",
+          addStatesB,
+          "bg-emerald-600 border-emerald-400",
+          "active-glow-green",
+          renderAdditionUI
+        );
+        drawAdditionSteps();
+      }
+      function drawAdditionSteps() {
+        const steps = document.getElementById("additionSteps");
+        steps.innerHTML = "";
+        const binA = addStatesA.slice().reverse().join(""),
+          binB = addStatesB.slice().reverse().join("");
+        const resDec = parseInt(binA, 2) + parseInt(binB, 2),
+          resBin = resDec.toString(2);
+        const finalLen = resBin.length;
+        let carries = new Array(
+            Math.max(addStatesA.length, addStatesB.length) + 1
+          ).fill(0),
+          tc = 0;
+        for (let i = 0; i < carries.length - 1; i++) {
+          let s = (addStatesA[i] || 0) + (addStatesB[i] || 0) + tc;
+          tc = s >= 2 ? 1 : 0;
+          carries[i + 1] = tc;
+        }
+        const cStr = carries
+          .slice(1)
+          .reverse()
+          .join("")
+          .padStart(finalLen, " ");
+        const createRow = (content, cls) => {
+          const r = document.createElement("div");
+          r.className = "step-row " + cls;
+          r.innerHTML = content
+            .split("")
+            .map((c) => `<span class="step-bit">${c === " " ? "" : c}</span>`)
+            .join("");
+          return r;
+        };
+        steps.appendChild(
+          createRow(
+            cStr,
+            "text-yellow-500 text-sm md:text-xl font-bold italic mb-1 opacity-70"
+          )
+        );
+        steps.appendChild(
+          createRow(binA.padStart(finalLen, "0"), "text-slate-300")
+        );
+        const rB = createRow(
+          binB.padStart(finalLen, "0"),
+          "text-slate-300 border-b-2 border-slate-600 pb-2 mb-2 relative"
+        );
+        rB.innerHTML =
+          `<span class="absolute left-[-2rem] text-green-500 font-bold">+</span>` +
+          rB.innerHTML;
+        steps.appendChild(rB);
+        steps.appendChild(createRow(resBin, "text-green-400 font-bold"));
+        document.getElementById(
+          "additionSummary"
+        ).innerText = `Hệ thập phân: ${parseInt(binA, 2)} + ${parseInt(
+          binB,
+          2
+        )} = ${resDec}`;
+      }
+
+      // --- NHÂN ---
+      let mulStatesA = [],
+        mulStatesB = [];
+      function initMultiplication() {
+        mulStatesA = new Array(
+          parseInt(document.getElementById("mulBitsA").value) || 4
+        ).fill(0);
+        mulStatesB = new Array(
+          parseInt(document.getElementById("mulBitsB").value) || 4
+        ).fill(0);
+        renderMultiUI();
+      }
+      function renderMultiUI() {
+        renderBitSet(
+          "mulContainerA",
+          mulStatesA,
+          "bg-purple-600 border-purple-400",
+          "active-glow-purple",
+          renderMultiUI
+        );
+        renderBitSet(
+          "mulContainerB",
+          mulStatesB,
+          "bg-pink-600 border-pink-400",
+          "active-glow-purple",
+          renderMultiUI
+        );
+        drawMultiSteps();
+      }
+      function drawMultiSteps() {
+        const steps = document.getElementById("multiplicationSteps");
+        steps.innerHTML = "";
+        const binA = mulStatesA.slice().reverse().join(""),
+          binB = mulStatesB.slice().reverse().join("");
+        const resDec = parseInt(binA, 2) * parseInt(binB, 2),
+          resBin = resDec.toString(2);
+        const createRow = (content, cls) => {
+          const r = document.createElement("div");
+          r.className = "step-row " + cls;
+          r.innerHTML = content
+            .split("")
+            .map((c) => `<span class="step-bit">${c === " " ? "" : c}</span>`)
+            .join("");
+          return r;
+        };
+        const finalLen = resBin.length;
+        steps.appendChild(
+          createRow(binA.padStart(finalLen, " "), "text-slate-400 opacity-60")
+        );
+        const rb = createRow(
+          binB.padStart(finalLen, " "),
+          "text-slate-400 border-b-2 border-slate-700 pb-2 mb-2 relative opacity-80"
+        );
+        rb.innerHTML =
+          `<span class="absolute left-[-2rem] text-purple-400 font-bold">×</span>` +
+          rb.innerHTML;
+        steps.appendChild(rb);
+        for (let i = 0; i < mulStatesB.length; i++) {
+          let bit = mulStatesB[i];
+          let content =
+            (bit === 1 ? binA : "0".repeat(binA.length)) + " ".repeat(i);
+          steps.appendChild(
+            createRow(
+              content.padStart(finalLen, " "),
+              bit === 1 ? "text-white" : "text-slate-700 opacity-30"
+            )
+          );
+        }
+        steps.appendChild(
+          createRow(
+            resBin,
+            "text-purple-400 font-bold border-t border-slate-700 mt-2 pt-2"
+          )
+        );
+        document.getElementById(
+          "multiplicationSummary"
+        ).innerText = `Hệ thập phân: ${parseInt(binA, 2)} × ${parseInt(
+          binB,
+          2
+        )} = ${resDec}`;
+      }
+
+      // --- BITWISE ---
+      let bitwiseA = [],
+        bitwiseB = [];
+      let currentOp = "AND";
+      function initBitwise() {
+        const count = Math.min(
+          Math.max(
+            parseInt(document.getElementById("bitwiseBits").value) || 8,
+            1
+          ),
+          16
+        );
+        document.getElementById("bitwiseBits").value = count;
+        bitwiseA = new Array(count).fill(0);
+        bitwiseB = new Array(count).fill(0);
+        renderBitwiseUI();
+      }
+      function setBitwiseOp(op) {
+        currentOp = op;
+        document.querySelectorAll(".op-btn").forEach((b) => {
+          b.className =
+            "op-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200";
+        });
+        document.getElementById("btn-op-" + op).className =
+          "op-btn px-6 py-2 rounded-xl font-bold bg-blue-600 text-white";
+        document.getElementById("bitwiseInputB").style.display =
+          op === "NOT" ? "none" : "block";
+        renderBitwiseUI();
+      }
+      function renderBitwiseUI() {
+        renderBitSet(
+          "bitContainerA",
+          bitwiseA,
+          "bg-blue-600 border-blue-400",
+          "active-glow",
+          renderBitwiseUI
+        );
+        renderBitSet(
+          "bitContainerB",
+          bitwiseB,
+          "bg-indigo-600 border-indigo-400",
+          "active-glow",
+          renderBitwiseUI
+        );
+        const vis = document.getElementById("bitwiseVisualization");
+        vis.innerHTML = "";
+        let resBits = [];
+        for (let i = bitwiseA.length - 1; i >= 0; i--) {
+          if (currentOp === "AND") resBits.push(bitwiseA[i] & bitwiseB[i]);
+          if (currentOp === "OR") resBits.push(bitwiseA[i] | bitwiseB[i]);
+          if (currentOp === "XOR") resBits.push(bitwiseA[i] ^ bitwiseB[i]);
+          if (currentOp === "NOT") resBits.push(bitwiseA[i] ? 0 : 1);
+        }
+        const binA = bitwiseA.slice().reverse().join(""),
+          binB = bitwiseB.slice().reverse().join(""),
+          resStr = resBits.join("");
+        const createRow = (content, cls) => {
+          const r = document.createElement("div");
+          r.className = "step-row " + cls;
+          r.innerHTML = content
+            .split("")
+            .map((c) => `<span class="step-bit">${c}</span>`)
+            .join("");
+          return r;
+        };
+        vis.appendChild(createRow(binA, "text-blue-400"));
+        if (currentOp !== "NOT") {
+          const rowB = createRow(
+            binB,
+            "text-indigo-400 border-b-2 border-slate-700 pb-2 mb-2 relative"
+          );
+          rowB.innerHTML =
+            `<span class="absolute left-[-3rem] text-slate-500 text-xl font-bold">${currentOp}</span>` +
+            rowB.innerHTML;
+          vis.appendChild(rowB);
+        } else {
+          const rowNot = createRow(
+            binA,
+            "text-blue-400 border-b-2 border-slate-700 pb-2 mb-2 relative"
+          );
+          rowNot.innerHTML =
+            `<span class="absolute left-[-3rem] text-slate-500 text-xl font-bold">NOT</span>` +
+            rowNot.innerHTML;
+          vis.innerHTML = "";
+          vis.appendChild(rowNot);
+        }
+        vis.appendChild(createRow(resStr, "text-white font-bold"));
+      }
+
+      // --- SHIFTS ---
+      let shiftBits = [];
+      let shiftDir = "left",
+        shiftAmt = 1;
+      function initShifts() {
+        const count = Math.min(
+          Math.max(
+            parseInt(document.getElementById("shiftBitsInput").value) || 8,
+            1
+          ),
+          16
+        );
+        document.getElementById("shiftBitsInput").value = count;
+        shiftBits = new Array(count).fill(0);
+
+        // Cập nhật range slider
+        const slider = document.getElementById("shiftAmount");
+        slider.max = count;
+        if (shiftAmt > count) {
+          shiftAmt = count;
+          document.getElementById("shiftAmountVal").innerText = count;
+          slider.value = count;
+        }
+
+        renderShiftsUI();
+      }
+      function setShiftDir(dir) {
+        shiftDir = dir;
+        document.querySelectorAll(".shift-dir-btn").forEach((b) => {
+          b.className =
+            "shift-dir-btn px-6 py-2 rounded-xl font-bold bg-gray-100 text-gray-600 hover:bg-gray-200";
+        });
+        document.getElementById("btn-shift-" + dir).className =
+          "shift-dir-btn px-6 py-2 rounded-xl font-bold bg-orange-600 text-white";
+        renderShiftsUI();
+      }
+      function updateShiftAmount(val) {
+        shiftAmt = parseInt(val);
+        document.getElementById("shiftAmountVal").innerText = val;
+        renderShiftsUI();
+      }
+      function renderShiftsUI() {
+        renderBitSet(
+          "shiftBitContainer",
+          shiftBits,
+          "bg-orange-600 border-orange-400",
+          "active-glow-orange",
+          renderShiftsUI
+        );
+        const vis = document.getElementById("shiftVisualization");
+        vis.innerHTML = "";
+        const count = shiftBits.length;
+        const binOrig = shiftBits.slice().reverse().join("");
+        let resArr = new Array(count).fill(0);
+
+        if (shiftDir === "left") {
+          for (let i = count - 1; i >= shiftAmt; i--)
+            resArr[i] = shiftBits[i - shiftAmt];
+          for (let i = 0; i < shiftAmt; i++) resArr[i] = 0;
+        } else {
+          for (let i = 0; i < count - shiftAmt; i++)
+            resArr[i] = shiftBits[i + shiftAmt];
+          for (let i = count - shiftAmt; i < count; i++) resArr[i] = 0;
+        }
+        const binRes = resArr.slice().reverse().join("");
+
+        vis.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="text-slate-500 text-[10px] uppercase mb-2 tracking-widest">Ban đầu</div>
+                    <div class="flex">${binOrig
+                      .split("")
+                      .map(
+                        (b) =>
+                          `<span class="step-bit text-slate-400">${b}</span>`
+                      )
+                      .join("")}</div>
+                </div>
+                <div class="text-orange-500 text-xl font-bold animate-pulse">${
+                  shiftDir === "left" ? "← Dịch trái" : "→ Dịch phải"
+                }</div>
+                <div class="flex flex-col items-center">
+                    <div class="text-slate-500 text-[10px] uppercase mb-2 tracking-widest">Kết quả (Dịch ${shiftAmt})</div>
+                    <div class="flex">${binRes
+                      .split("")
+                      .map((b, idx) => {
+                        let isPushed =
+                          shiftDir === "left"
+                            ? idx >= count - shiftAmt
+                            : idx < shiftAmt;
+                        return `<span class="step-bit ${
+                          isPushed ? "text-orange-500 font-bold" : "text-white"
+                        }">${b}</span>`;
+                      })
+                      .join("")}</div>
+                </div>
+            `;
+        document.getElementById("shiftSummary").innerText = `Dịch ${
+          shiftDir === "left" ? "trái" : "phải"
+        } logic: Các bit bị đẩy ra sẽ mất đi, và các bit mới lấp vào luôn là số 0.`;
+      }
+
+      // --- DEC TO BIN ---
+      function calculateDecToBin() {
+        const input = document.getElementById("decInput");
+        let num = parseInt(input.value);
+        if (isNaN(num) || num < 0) {
+          num = 0;
+          input.value = 0;
+        }
+        const area = document.getElementById("conversionStepsArea");
+        const tbody = document.getElementById("dec2binStepsBody");
+        const finalResEl = document.getElementById("dec2binFinalResult");
+        const remListEl = document.getElementById("dec2binRemainderList");
+        area.classList.remove("hidden");
+        tbody.innerHTML = "";
+        if (num === 0) {
+          tbody.innerHTML = `<tr><td class="py-4">0 / 2</td><td class="py-4 text-center">0</td><td class="py-4 text-right text-blue-400 font-bold">0</td></tr>`;
+          finalResEl.innerText = "0";
+          remListEl.innerText = "(0)";
+          return;
+        }
+        let tempNum = num,
+          remainders = [],
+          steps = [];
+        while (tempNum > 0) {
+          let remainder = tempNum % 2;
+          let quotient = Math.floor(tempNum / 2);
+          steps.push({ n: tempNum, q: quotient, r: remainder });
+          remainders.push(remainder);
+          tempNum = quotient;
+        }
+        steps.forEach((step) => {
+          const row = document.createElement("tr");
+          row.className =
+            "border-b border-slate-800 hover:bg-slate-800/50 transition-colors";
+          row.innerHTML = `<td class="py-4 text-slate-400">${step.n} <span class="text-slate-600">/ 2</span></td>
+                                <td class="py-4 text-center text-slate-300">${step.q}</td>
+                                <td class="py-4 text-right"><span class="bg-blue-900/50 text-blue-400 px-3 py-1 rounded-lg font-bold">${step.r}</span></td>`;
+          tbody.appendChild(row);
+        });
+        const result = remainders.reverse().join("");
+        finalResEl.innerText = result;
+        remListEl.innerText = `(${remainders.join(", ")})`;
+      }
+
+      window.onload = initConverter;
+    </script>
+  </body>
+</html>
